@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\Post\StoreRequest;
 use App\Http\Requests\User\StatRequest;
+use App\Http\Requests\User\StoreRequestAvatar;
 use App\Http\Resources\Post\PostResource;
 use App\Http\Resources\User\UserResource;
 use App\Models\LikedPost;
@@ -11,9 +12,11 @@ use App\Models\Post;
 use App\Models\PostImage;
 use App\Models\SubscriberFollowing;
 use App\Models\User;
+use App\Models\UserAvatar;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use function Termwind\renderUsing;
 
 class UserController extends Controller
 {
@@ -46,6 +49,83 @@ class UserController extends Controller
         }
 
         return UserResource::collection($users);
+    }
+
+    public function indexUser()
+    {
+        $user = Auth::user();
+
+        if ($user) {
+            // Возвращаем ID пользователя
+            return response()->json(['id' => $user->id]);
+        } else {
+            // Если пользователь не аутентифицирован, возвращаем ошибку
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+
+    }
+
+    public function storeAvatar(StoreRequestAvatar $request)
+    {
+        $data = $request->validated();
+        $avatarId = $data['avatar_id'];
+        unset($data['avatar_id']);
+
+        try {
+            DB::beginTransaction();
+
+            $this->processImage($avatarId);
+            UserAvatar::clearStorage();
+
+            DB::commit();
+        }catch (\Exception $exception) {
+            DB::rollBack();
+            return response()->json(['error' => $exception->getMessage()]);
+        }
+
+        return response()->json(['message' => 'Avatar updated successfully']);
+
+
+    }
+
+
+    private function processImage($avatarId)
+    {
+
+        if (isset($avatarId)){
+            $userId = auth()->id();
+
+            $currentAvatar = UserAvatar::where('user_id', $userId)->where('status', true)->first();
+            if($currentAvatar){
+                $currentAvatar->update([
+                    'status' => false
+                ]);
+            }
+
+
+            $avatar = UserAvatar::find($avatarId);
+            if ($avatar){
+                $avatar->update([
+                    'status' => true,
+                    'user_id' => auth()->id()
+                ]);
+            }
+
+        }
+    }
+
+
+
+
+
+    public function indexProfile()
+    {
+        $profile = User::with('avatar')->where('id', auth()->id())->firstOrFail();
+
+
+
+        return new UserResource($profile);
     }
 
     public function post(User $user)

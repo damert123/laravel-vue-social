@@ -58,12 +58,13 @@ export default {
             axios.post('/api/post_images', formData)
                 .then(res => {
                     this.image = res.data.data
+                    console.log(res);
                 })
         },
 
         store(){
             const id = this.image ? this.image.id : null
-            axios.post('/api/posts', {title: this.title, content: this.content, image_id: this.image.id})
+            axios.post('/api/posts', {title: this.title, content: this.content, image_id: id})
                 .then(res => {
                     this.title = '';
                     this.content = '';

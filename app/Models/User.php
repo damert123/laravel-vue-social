@@ -43,6 +43,15 @@ class User extends Authenticatable
         'password' => 'hashed',
     ];
 
+    protected $with = ['avatar'];
+
+
+    public function avatar()
+    {
+        return $this->hasOne(UserAvatar::class, 'user_id', 'id')->where('status', 1);
+
+    }
+
 
     public function posts()
     {
@@ -59,4 +68,6 @@ class User extends Authenticatable
         return $this->belongsToMany(Post::class, 'liked_posts', 'user_id', 'post_id');
 
     }
+
+
 }

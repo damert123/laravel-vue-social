@@ -20,11 +20,15 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 Route::group(['middleware' => 'auth:sanctum'], function () {
     Route::get('/users', [\App\Http\Controllers\UserController::class, 'index']);
+    Route::get('/users/{user}/profile', [\App\Http\Controllers\UserController::class, 'indexProfile']);
+    Route::get('/users/userId', [\App\Http\Controllers\UserController::class, 'indexUser']);
     Route::get('/users/{user}/posts', [\App\Http\Controllers\UserController::class, 'post']);
     Route::post('/users/{user}/toggle_following', [\App\Http\Controllers\UserController::class, 'toggleFollowing']);
 
 
     Route::get('/users/following_posts', [\App\Http\Controllers\UserController::class, 'followingPost']);
+    Route::post('/users/user_avatar', [\App\Http\Controllers\UserAvatarController::class, 'store']);
+    Route::post('/users/store_avatar', [\App\Http\Controllers\UserController::class, 'storeAvatar']);
     Route::post('/users/stats', [\App\Http\Controllers\UserController::class, 'stat']);
 
     Route::post('/posts', [\App\Http\Controllers\PostController::class, 'store']);
